@@ -1,0 +1,9 @@
+uvicorn
+numpy
+aiohttp
+asyncio
+typing
+websockets
+pytz
+requests
+fastapi
