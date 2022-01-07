@@ -10,54 +10,64 @@
 </head>
 <body>
 <script>
-    var label = {}
-    var chart = null;
-    function requestData(){
+    var label = {'BTCUSDT': 0, 'ETHUSDT': 1, 'BNBBTC': 2, 'SOLBTC' : 3, 'SOLBNB' : 4}
+    var chart = Array(5);
+    function requestData(coinname){
         $.ajax({
             type: "GET",
             dataType: "json",
-            url: "http://127.0.0.1:8000/get/BTCUSDT",
+            url: "http://127.0.0.1:8000/get/"+coinname,
             data: "",
             success: function(data) {
-                var BTCUSDT;
-                BTCUSDT = String(data.data).split(',').map(function(item){
+                var target;
+                target = String(data.data).split(',').map(function(item){
                     return parseFloat(item,10);
                 });
-                chart.series[0].addPoint(BTCUSDT)
-                setTimeout(requestData,1000);
-            }
+                console.log(typeof(chart[label[coinname]]))
+                chart[label[coinname]].series[0].addPoint(target)
+                setTimeout(function(){requestData(coinname)},1000);
+            },
         });
     }
     $(document).ready(function(){
-        chart = new Highcharts.chart('BTCUSDTGraph',{
-            chart: {
-                renderTo: 'container',
-                defaultSeriesType: 'spline',
-                events: {
-                    load: requestData
-                }
-            },
-            title:{
-                text: 'BTCUSDT'
-            },
-            xAxis: {
-                
-            },
-            yAxis: {
-                minPadding: 0.2,
-                maxPadding: 0.2,
-                title: {
-                    text: 'Price'
-                }
-            },
-            series: [{
-                name: 'BTCUSDT',
-                data: []
-            }]
-        })
+        for(var key in label){
+            console.log(key + label[key])
+            chart[label[key]] = new Highcharts.chart(key+'Graph',{
+                chart: {
+                    renderTo: 'container',
+                    defaultSeriesType: 'spline',
+                    events: {
+                        load: function(){
+                            requestData(key)
+                        }
+                    },
+                    width: 500
+                },
+                title:{
+                    text: key
+                },
+                xAxis: {
+                    
+                },
+                yAxis: {
+                    minPadding: 0.2,
+                    maxPadding: 0.2,
+                    title: {
+                        text: 'Price'
+                    }
+                },
+                series: [{
+                    name: key,
+                    data: []
+                }]
+            })
+        }
+        
         
     });
 </script>
-    <div id='BTCUSDTGraph'></div>
+    <div id='BTCUSDTGraph' style="display:inline-block"></div><div id='ETHUSDTGraph' style="display:inline-block"></div>
+    <div id='BNBBTCGraph' style="display:inline-block"></div><div id='SOLBTCGraph' style="display:inline-block"></div>
+    <div id='SOLBNBGraph' style="display:inline-block"></div>
 </body>
 </html>
