@@ -9,10 +9,17 @@ class CoinData:
     def __init__(self):
         self.price_data: List = [np.array([]) for i in range(len(label.keys()))]
         #self.price_volume: List = [np.array([]) for i in range(2)]
-    def data_order(self):
+    def data_order(self):#SOL 차익거래 관련된 정보를 Determinant 객체에 넘겨줌
+        if len(self.price_data[label['SOLBNB']]) != 0:
+            SOLDET.SOLBNB = self.price_data[label['SOLBNB']][-1]
+        if len(self.price_data[label['SOLBTC']]) != 0:
+            SOLDET.SOLBTC = self.price_data[label['SOLBTC']][-1]
+        if len(self.price_data[label['BNBBTC']]) != 0:
+            SOLDET.BNBBTC = self.price_data[label['BNBBTC']][-1]
         for i in range(len(label.keys())):
-            if len(self.price_data[i]) >= max_arr_size:
+            if len(self.price_data[i]) > max_arr_size:
                 self.price_data[i] = self.price_data[i][-truncate_size:]
+        SOLDET.routine()
     def get_relative_pricelist(self,c1,c2):
         if c1 not in label or c2 not in label: return
         print("get_relative_price: c1 c2 까지는 잘 입력함")
