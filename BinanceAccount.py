@@ -9,9 +9,8 @@ class user:
         self.balance = self.binance.fetch_balance()
     def getBalance(self):
         self.balance = self.binance.fetch_balance()
-        return self.balance
+        return {'free': self.balance['free'], 'used' : self.balance['used'], 'total' : self.balance['total']}
+User = user()
 if __name__ == '__main__':
     tmp = user()
-    balance = tmp.getBalance()
-    for k,v in balance.items():
-        print(k,v)
+    print(tmp.getBalance())

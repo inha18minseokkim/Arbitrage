@@ -30,6 +30,9 @@
                     return parseFloat(item,10);
                 });
                 SB = target[1];
+                if(chart.series[0].data.length >= 49){
+                    chart.series[0].data[0].remove();
+                }
                 chart.series[0].addPoint(target)
                 setTimeout(function(){requestData(coinname)},1000);
             },
@@ -47,6 +50,9 @@
                     return parseFloat(item,10);
                 });
                 SBNBNBT = target[1];
+                if(relativechart.series[0].data.length >= 49){
+                    relativechart.series[0].data[0].remove();
+                }
                 relativechart.series[0].addPoint(target)
                 setTimeout(function(){requestProductPrice(coinname)},1000);
             },

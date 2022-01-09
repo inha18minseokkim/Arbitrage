@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<head>
+    <script src="https://code.jquery.com/jquery-latest.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/series-label.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/export-data.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+    <script>
+        function updateBalance(){
+            $.ajax({
+                type: 'GET',
+                dataType: 'json',
+                url: 'http://127.0.0.1:8000/accountinfo/getbalance',
+                data: '',
+                success: function(data){
+                    for(var tmp in data.data.total){
+                        var balance = data.data.total[tmp]
+                        if(balance != 0){
+                             var elm = $('#balancelist');
+                          //   if(false){
+                             if(elm.has('#'+tmp+'balance').length != 0){
+                                 console.log("B");
+                                var child = elm.find("#"+tmp+"balance");
+                                console.log(child.innerHTML)
+                                child.html(""+tmp + " " + data.data.free[tmp] + " " + data.data.used[tmp] + " " +data.data.total[tmp]);
+                             } else{
+                                let balancetag = document.createElement('li');
+                                balancetag.innerHTML = tmp + " " + data.data.free[tmp] + " " + data.data.used[tmp] + " " +data.data.total[tmp];
+                                balancetag.setAttribute('id',tmp+'balance');
+                                 elm.append(balancetag)
+                             }
+                        }
+                    }
+                    setTimeout(updateBalance,1000)
+                }
+            })
+            
+        }
+        $(document).ready(function() {
+            updateBalance()
+        })
+    </script>
+</head>
+<body>
+    <ul id="balancelist" style="background-color:gray;width:'50%';height:'30%'"></ul>
+</body>

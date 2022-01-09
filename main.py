@@ -8,6 +8,7 @@ from Ticker.Ticker import recv_ticker
 from CoinDataManager import coindata,label
 from fastapi.middleware.cors import CORSMiddleware
 from Determinant import SOLDET
+from BinanceAccount import User
 origins = ["*"]
 app = FastAPI()
 app.add_middleware(
@@ -17,13 +18,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Optional[str] = None):
-    return {"item_id": item_id, "q":q}
 
 @app.on_event("startup")
 async def on_app_start() -> None:
@@ -56,3 +50,7 @@ def get_relative_pricelist(coin1,coin2):
 @app.get("/getlist/{coin}")
 def get_item_list(coin):
     return JSONResponse({"data": coindata.price_data[label[coin.upper()]].tolist()})
+
+@app.get("/accountinfo/getbalance")
+def get_balance():
+    return JSONResponse({"data" : User.getBalance()})
