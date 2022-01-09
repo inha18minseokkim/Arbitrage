@@ -7,3 +7,4 @@ websockets
 pytz
 requests
 fastapi
+ccxt
