@@ -3,8 +3,8 @@ from typing import List,Dict
 from Determinant import SOLDET
 label: Dict = {'BTCUSDT': 0, 'ETHUSDT': 1, 'BNBBTC': 2, 'SOLBTC' : 3, 'SOLBNB' : 4}
 
-max_arr_size = 20 #데이터로 저장할 코인 가격 리스트 최대 수. 넘어가면 버린다
-truncate_size = 7 #가장 최근 데이터 이만큼 살리고 나머지 버린다.
+max_arr_size = 100 #데이터로 저장할 코인 가격 리스트 최대 수. 넘어가면 버린다
+truncate_size = 70 #가장 최근 데이터 이만큼 살리고 나머지 버린다.
 class CoinData:
     def __init__(self):
         self.price_data: List = [np.array([]) for i in range(len(label.keys()))]
