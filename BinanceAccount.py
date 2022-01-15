@@ -1,7 +1,7 @@
 import config
 import ccxt
-import binance
 import asyncio
+import time
 class user:
     def __init__(self):
         self.APIKEY = config.get_secret('apiKey')
@@ -11,22 +11,39 @@ class user:
     def getBalance(self):
         self.balance = self.binance.fetch_balance()
         return {'free': self.balance['free'], 'used' : self.balance['used'], 'total' : self.balance['total']}
-    async def buyCrypto(self,coin,quantity,price):
-        order = binance.create_limit_buy_order(coin,quantity,price)
+    def buyCrypto(self,coin,price,quantity=0): # threading.Thread(tmp.buyCrypto,args=('SOL/BNB',0,0.295))).start() 이렇게 호출하면됨
+        tobuy, tosell = coin.split('/') #SOL/BNB인 경우 tobuy는 SOL tosell은 BNB tobuy:살거, tosell: 팔거
+        #수량지정을 하지않은경우 최저 한도 수량으로 정함
+        limitquantity = self.binance.markets[coin]['limits']['cost']['min']*1.01/price
+        if quantity == 0: quantity = limitquantity
+        #주문 넣기전에 잔고에 그만큼 있는지 확인 그만큼 없으면 종료
+        if self.getBalance()['free'][tosell] < quantity: return
+        #주문 넣음
+        order = self.binance.create_limit_buy_order(coin,quantity,price)
+        #3초 기다렸다가 체결안되면 바로 취소
+        time.sleep(3)
+        if order['status'] == 'open': # 주문하고 3초지났는데 체결안되면 자동취소
+            resp = self.binance.cancel_order(order['info']['orderId'],coin)
+
+    def sellCrypto(self,coin,price,quantity=0):
+        tosell, tobuy = coin.split('/') #SOL/BNB일 경우 tobuy : BNB, tosell : SOL
+        #수량지정을 하지않은 경우 최저 한도 수량으로 정함
+        limitquantity = self.binance.markets['SOL/BNB']['limits']['cost']['min'] * 1.01 / price
+        if quantity == 0: quantity = limitquantity
+        # 주문 넣기전에 잔고에 그만큼 있는지 확인 그만큼 없으면 종료
+        if self.getBalance()['free'][tosell] < quantity: return
+        #주문 ㄱㄱ
+        order = self.binance.create_limit_sell_order(coin,quantity,price)
         print(order)
-        asyncio.sleep(1000)
-        if order['info']:
-            resp = binance.cancel_order(order['info']['orderId'],coin)
-            print(resp)
-    async def sellCrypto(self,coin,quantity,price):
-        order = binance.create_test_order(coin,quantity,price)
-        print(order)
-        asyncio.sleep(1000)
-        if order['info']:
-            resp = binance.cancel_order(order['info']['orderId'],coin)
-            print(resp)
+        #3초 기다렸다가 주문 체결안되면 취소
+        time.sleep(3)
+        if order['status'] == 'open':
+            resp = self.binance.cancel_order(order['info']['orderId'],coin)
+            #print(resp)
 User = user()
 if __name__ == '__main__':
     tmp = user()
-    asyncio.run(tmp.buyCrypto('SOLBNB',0.2,0.001))
+    print(tmp.balance)
+    asyncio.run(tmp.buyCrypto('SOL/BNB',0,0.295))
+    #print(tmp.binance.markets['SOL/BNB']['limits']['cost']['min']*1.01/0.296)
     print(tmp.getBalance())
