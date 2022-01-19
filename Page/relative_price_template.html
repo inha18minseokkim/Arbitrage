@@ -1,0 +1,168 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script src="https://code.jquery.com/jquery-latest.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/series-label.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/export-data.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+</head>
+<body>
+    <meta id="coin1" data-name="{{coin1}}">
+    <meta id="coin2" data-name="{{coin2}}">
+    <meta id="coin3" data-name="{{coin3}}">
+    <div id='{{coin1}}/{{coin3}}Graph' style="display:inline-block"></div>
+    <div id='{{coin2}}Graph' style="display:inline-block"></div>
+    <div id='Difference' style="display:inline-block"></div>
+<script>
+    var label = {'BTCUSDT': 0, 'ETHUSDT': 1, 'BNBBTC': 2, 'SOLBTC' : 3, 'SOLBNB' : 4, 'ETHBTC': 5}
+    var coin1 = $('#coin1').data().name;
+    var coin2 = $('#coin2').data().name;
+    var coin3 = $('#coin3').data().name;
+    console.log(coin1)
+    console.log(coin2)
+    console.log(coin3)
+    var relativechart;
+    var chart;
+    var SB;
+    var SBNBNBT;
+    function requestData(coinname){
+        $.ajax({
+            type: "GET",
+            dataType: "json",
+            url: "http://127.0.0.1:8000/get/"+coinname,
+            data: "",
+            success: function(data) {
+                var target;
+                target = String(data.data).split(',').map(function(item){
+                    return parseFloat(item,10);
+                });
+                SB = target[1];
+                if(chart.series[0].data.length >= 49){
+                    chart.series[0].data[0].remove();
+                }
+                chart.series[0].addPoint(target)
+                setTimeout(function(){requestData(coinname)},1000);
+            },
+        });
+    }
+    function requestProductPrice(coinname){
+        $.ajax({
+            type: "GET",
+            dataType: "json",
+            url: "http://127.0.0.1:8000/get_product_price/"+coinname,
+            data: "",
+            success: function(data) {
+                var target;
+                target = String(data.data).split(',').map(function(item){
+                    return parseFloat(item,10);
+                });
+                SBNBNBT = target[1];
+                if(relativechart.series[0].data.length >= 49){
+                    relativechart.series[0].data[0].remove();
+                }
+                relativechart.series[0].addPoint(target)
+                setTimeout(function(){requestProductPrice(coinname)},1000);
+            },
+        });
+    }
+    $(document).ready(function(){
+        var key = coin1 + '/' + coin3;
+        relativechart = new Highcharts.chart(key+'Graph',{
+            chart: {
+                renderTo: 'container',
+                defaultSeriesType: 'spline',
+                events: {
+                    load: function(){
+                        requestProductPrice(key)
+                    }
+                },
+                width: 500
+            },
+            title:{
+                text: key
+            },
+            xAxis: {
+                
+            },
+            yAxis: {
+                minPadding: 0.2,
+                maxPadding: 0.2,
+                title: {
+                    text: 'Price'
+                }
+            },
+            series: [{
+                name: key,
+                data: []
+            }]
+        })
+        chart = new Highcharts.chart(coin2+'Graph',{
+            chart: {
+                renderTo: 'container',
+                defaultSeriesType: 'spline',
+                events: {
+                    load: function(){
+                        requestData(coin2)
+                    }
+                },
+                width: 500
+            },
+            title:{
+                text: coin2
+            },
+            xAxis: {
+                
+            },
+            yAxis: {
+                minPadding: 0.2,
+                maxPadding: 0.2,
+                title: {
+                    text: 'Price'
+                }
+            },
+            series: [{
+                name: coin2,
+                data: []
+            }]
+        })
+    });
+    function tmp(obj){
+        if(obj.series[0].data.length >= 150) obj.series[0].data[0].remove();
+        obj.series[0].addPoint((SB-SBNBNBT)/SBNBNBT*100);
+        setTimeout(function(){tmp(obj)},1000);
+    }
+    var diffchart = new Highcharts.chart('Difference',{
+            chart: {
+                renderTo: 'container',
+                defaultSeriesType: 'spline',
+                events: {
+                    load: function(){
+                        tmp(this)
+                    }
+                },
+                width: 1000
+            },
+            title:{
+                text: 'Difference('+coin2+'-'+coin1+'*'+coin3 +')/('+coin1+'*'+coin3+')*100'
+            },
+            xAxis: {
+                
+            },
+            yAxis: {
+                minPadding: 0.2,
+                maxPadding: 0.2,
+                title: {
+                    text: 'Price'
+                }
+            },
+            series: [{
+                name: 'Difference',
+                data: []
+            }]
+        })
+</script>
+    
+</body>
+</html>

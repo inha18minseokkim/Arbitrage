@@ -1,5 +1,5 @@
-from fastapi import FastAPI, BackgroundTasks
-from typing import Optional
+from fastapi import FastAPI, BackgroundTasks, Request
+import json
 import time
 from fastapi.responses import JSONResponse
 import numpy as np
@@ -9,6 +9,7 @@ from CoinDataManager import coindata,label
 from fastapi.middleware.cors import CORSMiddleware
 from Determinant import DET
 from BinanceAccount import User
+from fastapi.templating import Jinja2Templates
 origins = ["*"]
 app = FastAPI()
 app.add_middleware(
@@ -54,3 +55,9 @@ def get_item_list(coin):
 @app.get("/accountinfo/getbalance")
 def get_balance():
     return JSONResponse({"data" : User.getBalance()})
+
+templates = Jinja2Templates(directory="Page")
+@app.get("/relative_price_chart/{coin1}/{coin2}/{coin3}")
+async def get_relative_price_chart(request: Request, coin1,coin2,coin3):
+    forjs = {"a":coin1,"b":coin2,"c":coin3}
+    return templates.TemplateResponse("relative_price_template.html", {"request" : request, "coin1" : coin1, "coin2": coin2, "coin3" : coin3})

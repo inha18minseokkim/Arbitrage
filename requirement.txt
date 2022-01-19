@@ -9,3 +9,4 @@ requests
 fastapi
 ccxt
 binance
+jinja2
