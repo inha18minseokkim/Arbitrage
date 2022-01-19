@@ -120,6 +120,7 @@
         })
     });
     function tmp(obj){
+        if(obj.series[0].data.length >= 150) obj.series[0].data[0].remove();
         obj.series[0].addPoint((SB-SBNBNBT)/SBNBNBT*100);
         setTimeout(function(){tmp(obj)},1000);
     }

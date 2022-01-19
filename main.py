@@ -7,7 +7,7 @@ import asyncio
 from Ticker.Ticker import recv_ticker
 from CoinDataManager import coindata,label
 from fastapi.middleware.cors import CORSMiddleware
-from Determinant import SOLDET
+from Determinant import DET
 from BinanceAccount import User
 origins = ["*"]
 app = FastAPI()
