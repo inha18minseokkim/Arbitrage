@@ -57,6 +57,10 @@ def get_balance():
     return JSONResponse({"data" : User.getBalance()})
 
 templates = Jinja2Templates(directory="Page")
+# 사용법
+# coin1 SOLBNB
+# coin2 SOLBTC
+# coin3 BNBBTC 예를들어 이렇게 넣으면됨됨# coin1*coin3 vs coin2
 @app.get("/relative_price_chart/{coin1}/{coin2}/{coin3}")
 async def get_relative_price_chart(request: Request, coin1,coin2,coin3):
     forjs = {"a":coin1,"b":coin2,"c":coin3}
