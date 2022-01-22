@@ -18,10 +18,10 @@ class Determine:
         if SOLBTC == 1 or SOLBNB == 1 or BNBBTC == 1: return
         #이거 일단 리퀘스트 받는 타이밍이 달라서 가격 받아오지도 않았는데 매수타이밍 잡을 수도 있으니 임시로 이렇게 함
         #나중에 좀더 공부해서 좋은방법이 있으면 바꿀것
-        if ratio >= 0.06:
+        if ratio >= 0.08:
             print("SOLBTC 개비쌈지금")
             threading.Thread(target=User.buyCrypto, args=('SOL/BNB',SOLBNB)).start()
-        if ratio <= -0.06:
+        if ratio <= -0.08:
             print("SOLBNB 개비쌈지금")
             threading.Thread(target=User.sellCrypto, args=('SOL/BNB',SOLBNB)).start()
         #SOLBNB부분끝
@@ -31,10 +31,10 @@ class Determine:
         BTCUSDT = self.curPrice[label['BTCUSDT']]
         ratio = (ETHUSDT - ETHBTC*BTCUSDT)/(ETHBTC*BTCUSDT)*100
         if ETHUSDT == 1 or ETHBTC == 1 or BTCUSDT == 1: return
-        if ratio >= 0.06:
+        if ratio >= 0.08:
             print("ETHUSDT 개비쌈지금")
             threading.Thread(target=User.buyCrypto, args=('ETH/USDT',ETHUSDT)).start()
-        if ratio <= -0.06:
+        if ratio <= -0.08:
             print("ETHBTC 개비쌈지금")
             threading.Thread(target=User.buyCrypto, args=('ETH/USDT',ETHUSDT)).start()
         #ETHUSDT부분 끝

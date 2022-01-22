@@ -7,6 +7,8 @@
     <script src="https://code.highcharts.com/modules/export-data.js"></script>
     <script src="https://code.highcharts.com/modules/accessibility.js"></script>
     <script>
+        var total = 0;
+        var totalchart;
         function updateBalance(){
             $.ajax({
                 type: 'GET',
@@ -14,34 +16,89 @@
                 url: 'http://127.0.0.1:8000/accountinfo/getbalance',
                 data: '',
                 success: function(data){
+                    total = 0;
                     for(var tmp in data.data.total){
                         var balance = data.data.total[tmp]
                         if(balance != 0){
                              var elm = $('#balancelist');
-                          //   if(false){
-                             if(elm.has('#'+tmp+'balance').length != 0){
-                                 console.log("B");
+                             if(elm.has('#'+tmp+'balance').length != 0){//이미 있으면 그거 설정
                                 var child = elm.find("#"+tmp+"balance");
-                                console.log(child.innerHTML)
-                                child.html(""+tmp + " " + data.data.free[tmp] + " " + data.data.used[tmp] + " " +data.data.total[tmp]);
-                             } else{
-                                let balancetag = document.createElement('li');
-                                balancetag.innerHTML = tmp + " " + data.data.free[tmp] + " " + data.data.used[tmp] + " " +data.data.total[tmp];
+                                child.html("<td id='symbol'>" + tmp + "</td>" + "<td id='free'>" + data.data.free[tmp] + "</td>" + "<td id='used'>" +data.data.used[tmp] + "</td>" + "<td id='total'>" + data.data.total[tmp] + "</td>");
+                             } else{//없으면 새로 만들어
+                                let balancetag = document.createElement('tr');
+                                balancetag.innerHTML = "<td id='symbol'>" + tmp + "</td>" + "<td id='free'>" + data.data.free[tmp] + "</td>" + "<td id='used'>" +data.data.used[tmp] + "</td>" + "<td id='total'>" + data.data.total[tmp] + "</td>";
                                 balancetag.setAttribute('id',tmp+'balance');
                                  elm.append(balancetag)
                              }
                         }
                     }
-                    setTimeout(updateBalance,1000)
+                    setTimeout(updateBalance,10000)
                 }
             })
-            
+        }
+        function calculateBalance(){
+           $.ajax({
+                type:'GET',
+                dataType: 'json',
+                url: 'https://api.binance.com/api/v3/avgPrice?symbol=SOLBNB',
+                data: '',
+                success: function(data){
+                    total = 0
+                    var SOLBNB = parseFloat(data['price']);
+                    $('#balancelist > tbody > tr').each(function(index) {
+                    var symbol = $(this).find('td')[0].innerHTML;
+                    var balance = parseFloat($(this).find('td')[3].innerHTML);
+                    if(symbol == 'SOL')
+                        total += balance *SOLBNB;
+                    if(symbol == 'BNB')
+                        total += balance;
+            })
+                    $('#totalBalanceBNB').html(total);
+                    if(total != 0)
+                        totalchart.series[0].addPoint(total);
+                }
+            })
+            setTimeout(calculateBalance,3000);
         }
         $(document).ready(function() {
             updateBalance()
+            totalchart  = relativechart = new Highcharts.chart('totalBalanceBNBChart',{
+                chart: {
+                    renderTo: 'container',
+                    defaultSeriesType: 'spline',
+                    events: {
+                        load: function(){
+                            calculateBalance()
+                        }
+                    },
+                    width: 1000
+                },
+                title:{
+                    text: 'BNBValue'
+                },
+                xAxis: {
+
+                },
+                yAxis: {
+                    minPadding: 0.2,
+                    maxPadding: 0.2,
+                    title: {
+                        text: 'Value'
+                    }
+                },
+                series: [{
+                    name: 'BNB',
+                    data: []
+                }]
+            })
         })
     </script>
 </head>
 <body>
-    <ul id="balancelist" style="background-color:gray;width:50%;height:50%"></ul>
+    <h1 id="curTime"></h1>
+    <table id="balancelist" style="background-color:gray;width:50%;height:50%">
+        <th><td>free</td><td>used</td><td>total</td><td></td></th>
+    </table>
+    <h1 id="totalBalanceBNB"></h1>
+    <div id="totalBalanceBNBChart"></div>
 </body>
