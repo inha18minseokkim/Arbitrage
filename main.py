@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 import numpy as np
 import asyncio
 from Ticker.Ticker import recv_ticker
-from CoinDataManager import coindata,label
+from CoinDataManager import coindata,marketlabel
 from fastapi.middleware.cors import CORSMiddleware
 from Determinant import DET
 from BinanceAccount import User
@@ -32,7 +32,7 @@ def on_app_shutdown():
 #BTCUSDT 같이 코인 정보를 넣으면 현재 서버에 있는 데이터를 로드해줌
 @app.get("/get/{coin}")
 def get_item(coin):
-    return JSONResponse({"data": [time.time()*1000,coindata.price_data[label[coin.upper()]][-1]]})
+    return JSONResponse({"data": [time.time() * 1000, coindata.price_data[marketlabel[coin.upper()]][-1]]})
 #두개 나눈 상대가격 로드
 @app.get("/get_relative_price/{coin1}/{coin2}")
 def get_relative_price(coin1,coin2):
@@ -50,7 +50,7 @@ def get_relative_pricelist(coin1,coin2):
 
 @app.get("/getlist/{coin}")
 def get_item_list(coin):
-    return JSONResponse({"data": coindata.price_data[label[coin.upper()]].tolist()})
+    return JSONResponse({"data": coindata.price_data[marketlabel[coin.upper()]].tolist()})
 
 @app.get("/accountinfo/getbalance")
 def get_balance():

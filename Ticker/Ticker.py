@@ -1,7 +1,7 @@
 import datetime,ssl,pathlib,websockets,asyncio,signal,json,pytz
 from functools import partial
 import numpy as np
-from CoinDataManager import coindata,label
+from CoinDataManager import coindata,marketlabel
 class Ticker:
     def __init__(self, code, timestamp, open, high, low, close, volume):
         self.code = code
@@ -24,7 +24,7 @@ class Ticker:
 
 async def recv_ticker():
     uri = 'wss://stream.binance.com:9443'
-    markets = [i for i in label.keys()]
+    markets = [i for i in marketlabel.keys()]
     stream = 'kline_1m'
     params = '/'.join([f'{market.lower()}@{stream}' for market in markets])
     uri = uri + f'/stream?streams={params}'
@@ -41,5 +41,5 @@ async def recv_ticker():
             recv_data = await websocket.recv()
             res = Ticker.load_from_json(json.loads(recv_data)['data'])
             #print(res)
-            coindata.price_data[label[res.code]] = np.append(coindata.price_data[label[res.code]],float(res.close))
+            coindata.price_data[marketlabel[res.code]] = np.append(coindata.price_data[marketlabel[res.code]], float(res.close))
             coindata.data_order()
