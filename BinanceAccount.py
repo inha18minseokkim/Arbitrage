@@ -1,8 +1,16 @@
+import ssl
+
 import config
 import ccxt
 import asyncio
 import time
 import logging
+from websocket import create_connection
+import websockets
+class balance:
+    def __init__(self,binance):
+        self.base = binance.fetch_balance()
+
 class user:
     def __init__(self):
         self.APIKEY = config.get_secret('apiKey')
@@ -10,7 +18,6 @@ class user:
         self.binance = ccxt.binance({'apiKey' : self.APIKEY, 'secret' : self.SECRET})
         self.balance = self.binance.fetch_balance()
     def getBalance(self):
-        self.balance = self.binance.fetch_balance()
         return {'free': self.balance['free'], 'used' : self.balance['used'], 'total' : self.balance['total']}
     def buyCrypto(self,coin,price,quantity=0): # threading.Thread(tmp.buyCrypto,args=('SOL/BNB',0,0.295))).start() 이렇게 호출하면됨
         tobuy, tosell = coin.split('/') #SOL/BNB인 경우 tobuy는 SOL tosell은 BNB tobuy:살거, tosell: 팔거
@@ -25,7 +32,7 @@ class user:
         #주문 넣음
         order = self.binance.create_limit_buy_order(coin,quantity,price)
         #3초 기다렸다가 체결안되면 바로 취소
-        time.sleep(5)
+        time.sleep(3)
         if order['status'] == 'open': # 주문하고 3초지났는데 체결안되면 자동취소
             resp = self.binance.cancel_order(order['info']['orderId'],coin)
             print('BUY',coin,'Canceled')
@@ -44,14 +51,24 @@ class user:
         order = self.binance.create_limit_sell_order(coin,quantity,price)
         print(order)
         #3초 기다렸다가 주문 체결안되면 취소
-        time.sleep(5)
+        time.sleep(3)
         if order['status'] == 'open':
             resp = self.binance.cancel_order(order['info']['orderId'],coin)
             print('SELL',coin,'Canceled')
 User = user()
+# async def f():
+#     uri = 'wss://stream.binance.com:9443/stream?streams=tGNh7JVPg7jdvBOgNUdQiVKmW35hGNzoozYMODbZOhiBlDXA0hyY4mUSLaMT'
+#     print(uri)
+#     ws = create_connection(uri)
+#     print(ws)
+#     print("A")
+#     while True:
+#         print("C")
+#         result = await ws.recv()
+#         print("B")
+#         ws.close()
+#         print(result)
 if __name__ == '__main__':
+    #asyncio.get_event_loop().run_until_complete(f())
     tmp = user()
     print(tmp.balance)
-    asyncio.run(tmp.buyCrypto('SOL/BNB',0,0.295))
-    #print(tmp.binance.markets['SOL/BNB']['limits']['cost']['min']*1.01/0.296)
-    print(tmp.getBalance())
