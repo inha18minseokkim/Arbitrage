@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from Determinant import DET
 from BinanceAccount import User
 from fastapi.templating import Jinja2Templates
+from BinanceAccount import User
 origins = ["*"]
 app = FastAPI()
 app.add_middleware(
@@ -23,7 +24,7 @@ app.add_middleware(
 @app.on_event("startup")
 async def on_app_start() -> None:
     asyncio.create_task(recv_ticker())
-    #asyncio.create_task(SOLDET.routine())
+    asyncio.create_task(User.balance.update_websocket())
 
 @app.on_event("shutdown")
 def on_app_shutdown():
@@ -54,7 +55,7 @@ def get_item_list(coin):
 
 @app.get("/accountinfo/getbalance")
 def get_balance():
-    return JSONResponse({"data" : User.getBalance()})
+    return JSONResponse({"data" : User.getBalanceList()})
 
 templates = Jinja2Templates(directory="Page")
 # 사용법

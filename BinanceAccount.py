@@ -4,29 +4,44 @@ import config
 import ccxt
 import asyncio
 import time
-import logging
-from websocket import create_connection
-import websockets
+from binance import AsyncClient,BinanceSocketManager
 class balance:
     def __init__(self,binance):
         self.base = binance.fetch_balance()
+    def getBalance(self,coin):
+        return self.base['free'][coin]
+    def getBalanceList(self):
+        return self.base
+    async def update_websocket(self):
+        client = await AsyncClient.create(config.get_secret('apiKey'),config.get_secret('secret'))
+        bm = BinanceSocketManager(client)
+        us = bm.user_socket()
+        async with us as tmp:
+            while True:
+                res = await us.recv()
+                print("async update by websocket",res)
+                if res['e'] == 'outboundAccountPosition':
+                    for i in res['B']:
+                        self.base['free'][i['a']] = float(i['f'])
 
 class user:
     def __init__(self):
         self.APIKEY = config.get_secret('apiKey')
         self.SECRET = config.get_secret('secret')
         self.binance = ccxt.binance({'apiKey' : self.APIKEY, 'secret' : self.SECRET})
-        self.balance = self.binance.fetch_balance()
-    def getBalance(self):
-        return {'free': self.balance['free'], 'used' : self.balance['used'], 'total' : self.balance['total']}
+        self.balance = balance(self.binance)
+    def getBalanceList(self):
+        return self.balance.getBalanceList()
+    def getBalance(self,coin):
+        return self.balance.getBalance(coin)
     def buyCrypto(self,coin,price,quantity=0): # threading.Thread(tmp.buyCrypto,args=('SOL/BNB',0,0.295))).start() 이렇게 호출하면됨
         tobuy, tosell = coin.split('/') #SOL/BNB인 경우 tobuy는 SOL tosell은 BNB tobuy:살거, tosell: 팔거
         #수량지정을 하지않은경우 최저 한도 수량으로 정함
         limitquantity = self.binance.markets[coin]['limits']['cost']['min']*1.05/price
         if quantity == 0: quantity = limitquantity
         #주문 넣기전에 잔고에 그만큼 있는지 확인 그만큼 없으면 종료
-        print('BUY', coin, quantity, price, quantity * price)
-        if self.getBalance()['free'][tosell] < quantity:
+        print('BUY: ', coin, 'quantity: ',quantity, 'price: ',price,'total: ', quantity * price)
+        if self.getBalance(tosell) < quantity:
             print("잔고없엉")
             return
         #주문 넣음
@@ -43,8 +58,8 @@ class user:
         limitquantity = self.binance.markets[coin]['limits']['cost']['min'] * 1.05 / price
         if quantity == 0: quantity = limitquantity
         # 주문 넣기전에 잔고에 그만큼 있는지 확인 그만큼 없으면 종료
-        print('SELL', coin, quantity, price, quantity * price)
-        if self.getBalance()['free'][tosell] < quantity:
+        print('SELL: ', coin, 'quantity: ',quantity, 'price: ',price,'total: ', quantity * price)
+        if self.getBalance(tosell) < quantity:
             print("잔고없엉")
             return
         #주문 ㄱㄱ
@@ -71,4 +86,4 @@ User = user()
 if __name__ == '__main__':
     #asyncio.get_event_loop().run_until_complete(f())
     tmp = user()
-    print(tmp.balance)
+    print(tmp.getBalance('SOL'))
