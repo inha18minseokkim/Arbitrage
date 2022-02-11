@@ -1,0 +1,162 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script src="https://code.jquery.com/jquery-latest.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/series-label.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/export-data.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+</head>
+<body>
+    <meta id="coin1" data-name="sol">
+    <meta id="coin2" data-name="bnb">
+    <meta id="coin3" data-name="btc">
+    <div id='solbnbGraph' style="display:inline-block"></div>
+    <div id='solbtcGraph' style="display:inline-block"></div>
+    <div id='Difference' style="display:inline-block"></div>
+<script>
+    var label = {'BTCUSDT': 0, 'ETHUSDT': 1, 'BNBBTC': 2, 'SOLBTC' : 3, 'SOLBNB' : 4, 'ETHBTC': 5}
+    var coin1 = $('#coin1').data().name;
+    var coin2 = $('#coin2').data().name;
+    var coin3 = $('#coin3').data().name;
+    console.log(coin1)
+    console.log(coin2)
+    console.log(coin3)
+    var market1;
+    var market2;
+    var market3;
+    var market1socket = new WebSocket('wss://stream.binance.com:9443/ws/'+coin1+coin2+'@kline_1m');
+    market1socket.onmessage = function(event){
+        var data = JSON.parse(event.data);
+        //console.log(data['s']+"/"+data['k']['c']);
+        market1 = parseFloat(data['k']['c']);
+        //console.log(market1)
+    }
+    var market2socket = new WebSocket('wss://stream.binance.com:9443/ws/'+coin1+coin3+'@kline_1m');
+    market2socket.onmessage = function(event){
+        var data = JSON.parse(event.data);
+        console.log(data['s']+"/"+data['k']['c']);
+        market2 = parseFloat(data['k']['c']);
+    }
+    var market3socket = new WebSocket('wss://stream.binance.com:9443/ws/'+coin2+coin3+'@kline_1m');
+    market3socket.onmessage = function(event){
+        var data = JSON.parse(event.data);
+        console.log(data['s']+"/"+data['k']['c']);
+        market3 = parseFloat(data['k']['c']);
+    }
+    function chart1func(obj){
+        if(obj.series[0].data.length >= 150) obj.series[0].data[0].remove();
+        if (market1 != null) {
+            obj.series[0].addPoint(market1);
+            console.log(market1)
+        }
+        setTimeout(function(){chart1func(obj)},1000);
+    }
+    var chart1 = new Highcharts.chart(coin1+coin2+'Graph',{
+            chart: {
+                renderTo: 'container',
+                defaultSeriesType: 'spline',
+                events: {
+                    load: function(){
+                        chart1func(this);
+                    }
+                },
+                width: 500
+            },
+            title:{
+                text: coin1+coin2
+            },
+            xAxis: {
+
+            },
+            yAxis: {
+                minPadding: 0.2,
+                maxPadding: 0.2,
+                title: {
+                    text: 'Price'
+                }
+            },
+            series: [{
+                name: coin1+coin2,
+                data: []
+            }]
+        })
+    function chart2func(obj){
+        if(obj.series[0].data.length >= 150) obj.series[0].data[0].remove();
+        if (market1 != null) {
+            obj.series[0].addPoint(market2);
+            console.log(market2)
+        }
+        setTimeout(function(){chart2func(obj)},1000);
+    }
+    var chart2 = new Highcharts.chart(coin1+coin3+'Graph',{
+            chart: {
+                renderTo: 'container',
+                defaultSeriesType: 'spline',
+                events: {
+                    load: function(){
+                        chart2func(this);
+                    }
+                },
+                width: 500
+            },
+            title:{
+                text: coin1+coin3
+            },
+            xAxis: {
+
+            },
+            yAxis: {
+                minPadding: 0.2,
+                maxPadding: 0.2,
+                title: {
+                    text: 'Price'
+                }
+            },
+            series: [{
+                name: coin1+coin3,
+                data: []
+            }]
+        })
+    function chart3func(obj){
+        if(obj.series[0].data.length >= 150) obj.series[0].data[0].remove();
+        if (market1 != null && market2 != null && market3 != null) {
+            obj.series[0].addPoint((market1*market3 - market2)/market2 * 100);
+            console.log((market1*market3 - market2)/market2 * 100)
+        }
+        setTimeout(function(){chart3func(obj)},1000);
+    }
+    var chart3 = new Highcharts.chart('Difference',{
+            chart: {
+                renderTo: 'container',
+                defaultSeriesType: 'spline',
+                events: {
+                    load: function(){
+                        chart3func(this);
+                    }
+                },
+                width: 1000
+            },
+            title:{
+                text: 'DIFF'
+            },
+            xAxis: {
+
+            },
+            yAxis: {
+                minPadding: 0.2,
+                maxPadding: 0.2,
+                title: {
+                    text: 'Price'
+                }
+            },
+            series: [{
+                name: 'DIFF',
+                data: []
+            }]
+        })
+</script>
+
+</body>
+</html>
